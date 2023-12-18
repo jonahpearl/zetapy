@@ -279,6 +279,7 @@ def _collate_events(vecTimestamps, vecData, vecEventT, dblUseMaxDur, fs=None):
 
     return vecAlignedTimestamps, matAlignedTraces
 
+
 def calcTsZetaOne(vecTimestamps, vecData, arrEventTimes, dblUseMaxDur, fs, intResampNum, boolDirectQuantile, dblJitterSize):
     """
    Calculates neuronal responsiveness index zeta
@@ -338,7 +339,7 @@ def calcTsZetaOne(vecTimestamps, vecData, arrEventTimes, dblUseMaxDur, fs, intRe
     intTrials = len(vecEventT)
     matJitterPerTrial = np.zeros((intTrials, intResampNum))
     for intResampling in range(intResampNum):
-        matJitterPerTrial[:, intResampling] = dblJitterSize*dblUseMaxDur * \
+        matJitterPerTrial[:, intResampling] = dblJitterSize * dblUseMaxDur * \
             ((np.random.rand(vecEventT.shape[0]) - 0.5) * 2)  # uniform jitters between dblJitterSize*[-tau, +tau]
 
     # this part is only to check if matlab and python give the same exact results
@@ -357,9 +358,28 @@ def calcTsZetaOne(vecTimestamps, vecData, arrEventTimes, dblUseMaxDur, fs, intRe
         np.random.seed(1)
 
     # Run the jittered ZETA tests
+        # First, we will stitch the events together, then we will re-sample the 
+        # stitched data with jittered event times.
+    stitched_data = np.hstack(matAlignedTraces)
+    fictive_stitched_t = (
+        np.tile(vecAlignedTimestamps, matAlignedTraces.shape[0]) 
+        + np.repeat(np.arange(matAlignedTraces.shape[0]) * dblUseMaxDur, matAlignedTraces.shape[1])
+    )
+    fictive_og_evt_times = np.arange(matAlignedTraces.shape[0]) * dblUseMaxDur  # ie 0, 1, 2...
     for intResampling in range(intResampNum):
-        vecJitteredEventT = vecEventT + matJitterPerTrial[:, intResampling]
-        vecAlignedTimestamps, matAlignedTraces = _collate_events(vecTimestamps, vecData, vecJitteredEventT, dblUseMaxDur, fs=fs)
+        fictive_jittered_evt_times = fictive_og_evt_times + matJitterPerTrial[:, intResampling]
+        fictive_jittered_evt_times = fictive_jittered_evt_times[
+            (fictive_jittered_evt_times > dblUseMaxDur) 
+            & (fictive_jittered_evt_times < (fictive_stitched_t.max() - dblUseMaxDur))
+        ]
+        vecAlignedTimestamps, matAlignedTraces = _collate_events(
+            fictive_stitched_t,
+            stitched_data,
+            fictive_jittered_evt_times,
+            dblUseMaxDur,
+            fs=fs
+        )
+
         vecRandDeviation, vecThisFrac, vecThisFracLinear, vecRandT = getTimeseriesOffsetOne(
             matAlignedTraces,
             vecAlignedTimestamps,
