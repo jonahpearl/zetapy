@@ -3,5 +3,7 @@ from zetapy.plot_dependencies import plotzeta, plotzeta2, plottszeta, plottszeta
 from zetapy import legacy
 from zetapy.legacy.main import getZeta, getIFR
 
+from zetapy import og_main, og_ts_dependencies
+
 # from zetapy.msd import getMultiScaleDeriv
 # from zetapy.dependencies import getPeak, getGumbel, getOnset, getTempOffset, flatten, calculatePeths
