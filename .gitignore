@@ -1,3 +1,4 @@
 unit_tests/**
 *.pyc
 *.asv
+.ipynb_checkpoints
