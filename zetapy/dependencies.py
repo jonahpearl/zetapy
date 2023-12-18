@@ -5,7 +5,7 @@ from scipy import stats
 from math import pi, sqrt, exp, factorial
 from collections.abc import Iterable
 
-# %% calcZetaTwo
+# calcZetaTwo
 
 
 def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, dblUseMaxDur, intResampNum, boolDirectQuantile):
@@ -17,7 +17,7 @@ def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, 
         vecSpikeT, vecRealDeviation, vecRealFrac, vecRealFracLinear, cellRandTime, cellRandDeviation, dblZetaP, dblZETA, intZETAIdx
     """
 
-    # %% pre-allocate output
+    # pre-allocate output
     vecSpikeT = None
     vecRealDiff = None
     vecRealFrac1 = None
@@ -39,7 +39,7 @@ def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, 
     dZETA['dblZETA'] = dblZETA
     dZETA['intZETAIdx'] = intZETAIdx
 
-    # %% ensure input is correct
+    # ensure input is correct
     # assert that arrEventTimes is a 1D array of floats
     assert len(arrEventTimes1.shape) < 3 and len(arrEventTimes2.shape) < 3 \
         and issubclass(arrEventTimes1.dtype.type, np.floating) and issubclass(arrEventTimes2.dtype.type, np.floating), \
@@ -71,13 +71,13 @@ def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, 
         # turn into T-by-1 array
         arrEventTimes2 = np.reshape(arrEventTimes2, (-1, 1))
 
-    # %% get spikes per trial
+    # get spikes per trial
     vecEventT1 = arrEventTimes1[:, 0]
     vecEventT2 = arrEventTimes2[:, 0]
     cellTrialPerSpike1, cellTimePerSpike1 = getSpikesInTrial(vecSpikeTimes1, vecEventT1, dblUseMaxDur)
     cellTrialPerSpike2, cellTimePerSpike2 = getSpikesInTrial(vecSpikeTimes2, vecEventT2, dblUseMaxDur)
 
-    # %% run normal
+    # run normal
     # normalize to cumsum(v1)+cumsum(v2) = 1
     # take difference
     # mean-subtract
@@ -103,10 +103,10 @@ def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, 
     intTrials2 = len(cellTimePerSpike2)
     intTotTrials = intTrials1+intTrials2
 
-    # %% run bootstraps; try parallel, otherwise run normal loop
+    # run bootstraps; try parallel, otherwise run normal loop
     # repeat procedure, but swap trials randomly in each resampling
     for intResampling in range(intResampNum):
-        # %% get random subsample
+        # get random subsample
         # if cond1 has 10 trials, and cond2 has 100, then:
         # for shuffle of cond1: take 10 trials from set of 110
         # for shuffle of cond2: take 100 trials from set of 110
@@ -133,10 +133,10 @@ def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, 
             dblAddVal = dblMaxD
         vecMaxRandD[intResampling] = dblAddVal
 
-    # %% calculate significance
+    # calculate significance
     dblZetaP, dblZETA = getZetaP(dblMaxD, vecMaxRandD, boolDirectQuantile)
 
-    # %% return
+    # return
     dZETA = dict()
     dZETA['vecSpikeT'] = vecSpikeT
     dZETA['vecRealDiff'] = vecRealDiff
@@ -149,7 +149,7 @@ def calcZetaTwo(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2, 
     dZETA['intZETAIdx'] = intZETAIdx
     return dZETA
 
-# %%
+#
 
 
 def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDirectQuantile, dblJitterSize, boolStitch, boolParallel):
@@ -160,7 +160,7 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
         vecSpikeT, vecRealDeviation, vecRealFrac, vecRealFracLinear, cellRandTime, cellRandDeviation, dblZetaP, dblZETA, intZETAIdx
     """
 
-    # %% pre-allocate output
+    # pre-allocate output
     vecSpikeT = None
     vecRealDeviation = None
     vecRealFrac = None
@@ -182,10 +182,10 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
     dZETA['dblZETA'] = dblZETA
     dZETA['intZETAIdx'] = intZETAIdx
 
-    # %% prep parallel processing
+    # prep parallel processing
     # to do
 
-    # %% reduce spikes
+    # reduce spikes
     # ensure orientation and assert that arrEventTimes is a 1D array of floats
     assert len(arrEventTimes.shape) < 3 and issubclass(
         arrEventTimes.dtype.type, np.floating), "Input arrEventTimes is not a 1D or 2D float np.array"
@@ -213,14 +213,14 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
             "calcZetaOne:vecSpikeTimes: too few spikes around events to calculate zeta")
         return dZETA
 
-    # %% build pseudo data, stitching stimulus periods
+    # build pseudo data, stitching stimulus periods
     if boolStitch:
         vecPseudoSpikeTimes, vecPseudoEventT = getPseudoSpikeVectors(vecSpikeTimes, vecEventT, dblUseMaxDur)
     else:
         vecPseudoSpikeTimes = vecSpikeTimes
         vecPseudoEventT = vecEventT
 
-    # %% run normal
+    # run normal
     # get data
     vecRealDeviation, vecRealFrac, vecRealFracLinear, vecSpikeT = getTempOffsetOne(
         vecPseudoSpikeTimes, vecPseudoEventT, dblUseMaxDur)
@@ -234,7 +234,7 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
     intZETAIdx = np.argmax(np.abs(vecRealDeviation))
     dblMaxD = np.abs(vecRealDeviation[intZETAIdx])
 
-    # %% create random jitters
+    # create random jitters
     # run pre-set number of iterations
     cellRandTime = []
     cellRandDeviation = []
@@ -251,7 +251,7 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
         matJitterPerTrial[:, intResampling] = dblJitterSize*dblUseMaxDur * \
             ((np.random.rand(vecStartOnly.shape[0]) - 0.5) * 2)
 
-    # %% this part is only to check if matlab and python give the same exact results
+    # this part is only to check if matlab and python give the same exact results
     # unfortunately matlab's randperm() and numpy's np.random.permutation give different outputs even with
     # identical seeds and identical random number generators, so I've had to load in a table of random values here...
     boolTest = False
@@ -266,7 +266,7 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
         # reset rng
         np.random.seed(1)
 
-    # %% run resamplings
+    # run resamplings
     for intResampling in range(intResampNum):
         # get random subsample
         vecStimUseOnTime = vecStartOnly[:, 0] + matJitterPerTrial[:, intResampling].T
@@ -280,10 +280,10 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
         cellRandDeviation.append(vecRandDiff - np.mean(vecRandDiff))
         vecMaxRandD[intResampling] = np.max(np.abs(cellRandDeviation[intResampling]))
 
-    # %% calculate significance
+    # calculate significance
     dblZetaP, dblZETA = getZetaP(dblMaxD, vecMaxRandD, boolDirectQuantile)
 
-    # %% assign output
+    # assign output
     dZETA = dict()
     dZETA['vecSpikeT'] = vecSpikeT
     dZETA['vecRealDeviation'] = vecRealDeviation
@@ -296,7 +296,7 @@ def calcZetaOne(vecSpikeTimes, arrEventTimes, dblUseMaxDur, intResampNum, boolDi
     dZETA['intZETAIdx'] = intZETAIdx
     return dZETA
 
-# %%
+#
 
 
 def getTempOffsetTwo(cellTimePerSpike1, cellTimePerSpike2, dblUseMaxDur):
@@ -348,7 +348,7 @@ def getTempOffsetTwo(cellTimePerSpike1, cellTimePerSpike2, dblUseMaxDur):
 
     return vecSpikeT, vecThisDiff, vecThisFrac1, vecThisSpikeTimes1, vecThisFrac2, vecThisSpikeTimes2
 
-# %%
+#
 
 
 def getSpikesInTrial(vecSpikes, vecTrialStarts, dblMaxDur):
@@ -378,11 +378,11 @@ def getSpikesInTrial(vecSpikes, vecTrialStarts, dblMaxDur):
 
     return cellTrialPerSpike, cellTimePerSpike
 
-# %%
+#
 
 
 def getZetaP(arrMaxD, vecMaxRandD, boolDirectQuantile):
-    # %% calculate significance
+    # calculate significance
     # find highest peak and retrieve value
     vecMaxRandD = np.sort(np.unique(vecMaxRandD), axis=0)
     if not isinstance(arrMaxD, Iterable):
@@ -418,7 +418,7 @@ def getZetaP(arrMaxD, vecMaxRandD, boolDirectQuantile):
         arrZETA = arrZETA[0]
     return arrZetaP, arrZETA
 
-# %%
+#
 
 
 def getGumbel(dblE, dblV, arrX):
@@ -450,11 +450,11 @@ def getGumbel(dblE, dblV, arrX):
         https://en.wikipedia.org/wiki/Gumbel_distribution
     """
 
-    # %% define constants
+    # define constants
     # define Euler-Mascheroni constant
     dblEulerMascheroni = 0.5772156649015328606065120900824  # vpa(eulergamma)
 
-    # %% define Gumbel parameters from mean and variance
+    # define Gumbel parameters from mean and variance
     # derive beta parameter from variance
     dblBeta = (sqrt(6)*sqrt(dblV))/(pi)
 
@@ -464,7 +464,7 @@ def getGumbel(dblE, dblV, arrX):
     # define Gumbel cdf
     def fGumbelCDF(x): return np.exp(-np.exp(-((x-dblMode) / dblBeta)))
 
-    # %% calculate output variables
+    # calculate output variables
     # calculate cum dens at X
     arrGumbelCDF = fGumbelCDF(arrX)
 
@@ -483,11 +483,11 @@ def getGumbel(dblE, dblV, arrX):
     # return
     return arrP, arrZ
 
-# %%
+#
 
 
 def getTempOffsetOne(vecSpikeTimes, vecEventTimes, dblUseMaxDur):
-    # %% get temp diff vector
+    # get temp diff vector
     # pre-allocate
     vecSpikesInTrial = getSpikeT(vecSpikeTimes, vecEventTimes, dblUseMaxDur)
 
@@ -507,7 +507,7 @@ def getTempOffsetOne(vecSpikeTimes, vecEventTimes, dblUseMaxDur):
 
     return vecThisDeviation, vecThisSpikeFracs, vecThisFracLinear, vecThisSpikeTimes
 
-# %%
+#
 
 
 def getUniqueSpikes(vecSpikesInTrial):
@@ -522,11 +522,11 @@ def getUniqueSpikes(vecSpikesInTrial):
         vecUniqueSpikes, vecIdx = np.unique(vecSpikesInTrial, return_index=True)
     return vecSpikesInTrial
 
-# %%
+#
 
 
 def getSpikeT(vecSpikeTimes, vecEventTimes, dblUseMaxDur):
-    # %% turn spike times relative to recording start into times relative to trial start
+    # turn spike times relative to recording start into times relative to trial start
 
     # pre-allocate
     vecSpikesInTrial = np.empty((vecSpikeTimes.size*2))
@@ -555,16 +555,16 @@ def getSpikeT(vecSpikeTimes, vecEventTimes, dblUseMaxDur):
 
     return vecSpikesInTrial
 
-# %%
+#
 
 
 def getPseudoSpikeVectors(vecSpikeTimes, vecEventTimes, dblWindowDur, boolDiscardEdges=False):
-    # %% prep
+    # prep
     # ensure sorting and alignment
     vecSpikeTimes = np.sort(np.reshape(vecSpikeTimes, (-1, 1)), axis=0)
     vecEventTimes = np.sort(np.reshape(vecEventTimes, (-1, 1)), axis=0)
 
-    # %% pre-allocate
+    # pre-allocate
     intSamples = vecSpikeTimes.size
     intTrials = vecEventTimes.size
     dblMedianDur = np.median(np.diff(vecSpikeTimes, axis=0))
@@ -622,7 +622,7 @@ def getPseudoSpikeVectors(vecSpikeTimes, vecEventTimes, dblWindowDur, boolDiscar
             else:
                 dblPseudoEventT = dblPseudoEventT + dblWindowDur
 
-        # %% make local pseudo event time
+        # make local pseudo event time
         if vecUseSamples.size == 0:
             vecLocalPseudoT = np.empty(0)
         else:
@@ -637,7 +637,7 @@ def getPseudoSpikeVectors(vecSpikeTimes, vecEventTimes, dblWindowDur, boolDiscar
         cellPseudoSpikeT.append(vecLocalPseudoT)
         vecPseudoEventT[intTrial] = dblPseudoEventT
 
-    # %% add beginning
+    # add beginning
     if not boolDiscardEdges and intFirstSample is not None and intFirstSample > 0:
         dblStepBegin = vecSpikeTimes[intFirstSample] - vecSpikeTimes[intFirstSample-1]
         vecSampAddBeginning = np.arange(0, intFirstSample)
@@ -647,7 +647,7 @@ def getPseudoSpikeVectors(vecSpikeTimes, vecEventTimes, dblWindowDur, boolDiscar
                    )  # make local to first spike in array, then preceding pseudo event t0
         cellPseudoSpikeT.append(vecAddBeginningSpikes)
 
-    # %% add end
+    # add end
     intTn = vecSpikeTimes.size
     intLastUsedSample = findfirst(vecSpikeTimes > (vecEventTimes[-1]+dblWindowDur))
     if not boolDiscardEdges and intLastUsedSample is not None and (intTn-1) > intLastUsedSample:
@@ -655,11 +655,11 @@ def getPseudoSpikeVectors(vecSpikeTimes, vecEventTimes, dblWindowDur, boolDiscar
         vecAddEndSpikes = vecSpikeTimes[vecSampAddEnd] - dblEventT + dblPseudoEventT + dblWindowDur
         cellPseudoSpikeT.append(vecAddEndSpikes)
 
-    # %% recombine into vector
+    # recombine into vector
     vecPseudoSpikeTimes = np.array(sorted(flatten(cellPseudoSpikeT)))
     return vecPseudoSpikeTimes, vecPseudoEventT
 
-# %%
+#
 
 
 def findfirst(indArray):
@@ -670,7 +670,7 @@ def findfirst(indArray):
         intStartSample = vecStartSamples[0]
     return intStartSample
 
-# %%
+#
 
 
 def flatten(l):

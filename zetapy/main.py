@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import logging
+import warnings
 
 # from zetapy import msd
 from scipy import stats
@@ -9,7 +10,7 @@ from zetapy.ifr_dependencies import (getMultiScaleDeriv, getPeak, getOnset)
 from zetapy.plot_dependencies import calculatePeths, plotzeta, plotzeta2, plottszeta, plottszeta2
 from zetapy.ts_dependencies import calcTsZetaOne, calcTsZetaTwo, getPseudoTimeSeries, getTsRefT, getInterpolatedTimeSeries
 
-# %% two-sample time-series zeta test
+# two-sample time-series zeta test
 
 
 def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEventTimes2,
@@ -90,7 +91,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
 
     """
 
-    # %% build placeholder outputs
+    # build placeholder outputs
     dblZetaP = 1.0
     dZETA = dict()
 
@@ -129,7 +130,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
     # window used for analysis
     dZETA['dblUseMaxDur'] = None
 
-    # %% prep data and assert inputs are correct
+    # prep data and assert inputs are correct
 
     # vecTime1 and vecValue1 must be [N by 1] arrays
     assert len(vecTime1.shape) == len(
@@ -260,13 +261,13 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
     else:
         assert isinstance(boolDirectQuantile, bool), "boolDirectQuantile is not a boolean"
 
-    # %% check data length
+    # check data length
     assert (len(vecTime1) == len(vecValue1) and len(vecTime2) == len(vecValue2)), 'Input lengths do not match'
 
     assert np.min(arrEventTimes1[:, 0]) > np.min(vecTime1) and np.max(arrEventTimes1[:, 0]) < (np.max(vecTime1)-dblUseMaxDur) \
         and np.min(arrEventTimes2[:, 0]) > np.min(vecTime2) and np.max(arrEventTimes2[:, 0]) < (np.max(vecTime2)-dblUseMaxDur), 'Events exist outside of data period'
 
-    # %% calculate zeta
+    # calculate zeta
     dZETA_Two = calcTsZetaTwo(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEventTimes2,
                               dblSuperResFactor, dblUseMaxDur, intResampNum, boolDirectQuantile)
 
@@ -288,7 +289,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
         logging.warning("zetatstest2: calculation failed, defaulting to p=1.0")
         return dblZetaP, dZETA
 
-    # %% extract real outputs
+    # extract real outputs
     # get location
     dblZETATime = vecRefTime[intZETAIdx]
     dblZETADeviation = vecRealDiff[intZETAIdx]
@@ -298,7 +299,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
     dblZETATime_InvSign = vecRefTime[intZETAIdx_InvSign]
     dblZETADeviation_InvSign = vecRealDiff[intZETAIdx_InvSign]
 
-    # %% calculate mean-rate difference
+    # calculate mean-rate difference
     if boolStopSupplied:
         for intTrace in [1, 2]:
             if intTrace == 1:
@@ -323,7 +324,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
 
             # go through trials to build mean-rate diff
             for intEvent, dblStimStartT in enumerate(vecEventStarts):
-                # %% get original times
+                # get original times
                 dblStimStopT = vecEventStops[intEvent]
                 dblBaseStopT = dblStimStartT + dblUseMaxDur
                 if (dblBaseStopT - dblStimStopT) <= 0:
@@ -340,7 +341,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
                 vecUseBaseTrace = vecThisTraceAct[vecSelectFramesBase]
                 vecUseStimTrace = vecThisTraceAct[vecSelectFramesStim]
 
-                # %% get activity
+                # get activity
                 vecMu_Base[intEvent] = np.mean(vecUseBaseTrace)
                 vecMu_Dur[intEvent] = np.mean(vecUseStimTrace)
 
@@ -359,7 +360,7 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
         dblMeanP = stats.ttest_ind(vecMu1, vecMu2)[1]
         dblMeanZ = -stats.norm.ppf(dblMeanP/2)
 
-    # %% build output structure
+    # build output structure
     # fill dZETA
     dZETA['dblZetaP'] = dblZetaP
     dZETA['dblZETA'] = dblZETA
@@ -384,14 +385,14 @@ def zetatstest2(vecTime1, vecValue1, arrEventTimes1, vecTime2, vecValue2, arrEve
     dZETA['matTracePerTrial1'] = matTracePerTrial1
     dZETA['matTracePerTrial2'] = matTracePerTrial2
 
-    # %% plot
+    # plot
     if boolPlot:
         plottszeta2(dZETA)
 
-    # %% return
+    # return
     return dblZetaP, dZETA
 
-# %% two-sample zeta test
+# two-sample zeta test
 
 
 def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
@@ -467,7 +468,7 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
 
     """
 
-    # %% build placeholder outputs
+    # build placeholder outputs
     dblZetaP = 1.0
     dZETA = dict()
 
@@ -505,7 +506,7 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
     # window used for analysis
     dZETA['dblUseMaxDur'] = None
 
-    # %% prep data and assert inputs are correct
+    # prep data and assert inputs are correct
 
     # vecSpikeTimes1 must be [S by 1] array
     assert (len(vecSpikeTimes1.shape) == 1 or vecSpikeTimes1.shape[1] == 1) and issubclass(
@@ -597,14 +598,14 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
     # to do: parallel computing
     boolParallel = False
 
-    # %% calculate zeta
+    # calculate zeta
     vecEventStarts1 = arrEventTimes1[:, 0]
     vecEventStarts2 = arrEventTimes2[:, 0]
     # if len(vecEventStarts1) > 1 and (len(vecSpikeTimes1)+len(vecSpikeTimes2)) > 0 and dblUseMaxDur is not None and dblUseMaxDur > 0:
     dZETA_Two = calcZetaTwo(vecSpikeTimes1, vecEventStarts1, vecSpikeTimes2,
                             vecEventStarts2, dblUseMaxDur, intResampNum, boolDirectQuantile)
 
-    # %% calculate zeta
+    # calculate zeta
     # update and unpack
     dZETA.update(dZETA_Two)
     vecSpikeT = dZETA['vecSpikeT']
@@ -617,7 +618,7 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
         logging.warning("zetatest2: calculation failed, defaulting to p=1.0")
         return dblZetaP, dZETA
 
-    # %% extract real outputs
+    # extract real outputs
     # get location
     dblZetaT = vecSpikeT[intZetaIdx]
     dblZETADeviation = vecRealDiff[intZetaIdx]
@@ -627,7 +628,7 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
     dblZetaT_InvSign = vecSpikeT[intZetaIdx_InvSign]
     dblD_InvSign = vecRealDiff[intZetaIdx_InvSign]
 
-    # %% calculate mean-rate difference with t-test
+    # calculate mean-rate difference with t-test
     if boolStopSupplied:
         # calculate spike counts and durations during baseline and stimulus times
         vecRespBinsDur = np.sort(np.reshape(arrEventTimes1, -1))
@@ -645,7 +646,7 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
         dblMeanP = stats.ttest_ind(vecMu1, vecMu2)[1]
         dblMeanZ = -stats.norm.ppf(dblMeanP/2)
 
-    # %% build output dictionary
+    # build output dictionary
     # fill dZETA
     dZETA['dblZETADeviation'] = dblZETADeviation
     dZETA['dblZetaT'] = dblZetaT
@@ -662,18 +663,27 @@ def zetatest2(vecSpikeTimes1, arrEventTimes1, vecSpikeTimes2, arrEventTimes2,
     # window used for analysis
     dZETA['dblUseMaxDur'] = dblUseMaxDur
 
-    # %% plot
+    # plot
     if boolPlot:
         plotzeta2(vecSpikeTimes1, vecEventStarts1, vecSpikeTimes2, vecEventStarts2, dZETA)
 
-    # %% return outputs
+    # return outputs
     return dblZetaP, dZETA
 
-# %% time-series zeta
+# time-series zeta
 
 
-def zetatstest(vecTime, vecValue, arrEventTimes,
-               dblUseMaxDur=None, intResampNum=100, boolPlot=False, dblJitterSize=2.0, boolDirectQuantile=False, boolStitch=True):
+def zetatstest(
+        vecTime,
+        vecValue,
+        arrEventTimes,
+        dblUseMaxDur=None,
+        fs=None,
+        intResampNum=100,
+        boolPlot=False,
+        dblJitterSize=2.0,
+        boolDirectQuantile=False,
+):
     """
     Calculates responsiveness index zeta for timeseries data
 
@@ -699,6 +709,9 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
     dblUseMaxDur : float
         window length for calculating ZETA: ignore all entries beyond this duration after event onset
         (default: minimum of event onset to event onset)
+    fs: int
+        sampling rate of data (default: None). If None, data is interpolated to 1000 Hz.
+        Passing fs will signficantly speed up calculation, as no interpolation is required.
     intResampNum : integer
         number of resamplings (default: 100)
         [Note: if your p-value is close to significance, you should increase this number to enhance the precision]
@@ -746,7 +759,7 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
     1.1 - 25 Oct 2023 Removed jitter distro switch [by Jorrit Montijn]
 
     """
-    # %% build placeholder outputs
+    # build placeholder outputs
     dblZetaP = 1.0
     dZETA = dict()
 
@@ -783,7 +796,7 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
     # window used for analysis
     dZETA['dblUseMaxDur'] = None
 
-    # %% prep data and assert inputs are correct
+    # prep data and assert inputs are correct
 
     # vecTime and vecValue must be [N by 1] arrays
     assert len(vecTime.shape) == len(
@@ -850,6 +863,10 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
         dblUseMaxDur = np.float64(dblUseMaxDur)
         assert dblUseMaxDur.size == 1 and dblUseMaxDur > 0, "dblUseMaxDur is not a positive scalar float"
 
+    # check sampling rate param
+    if fs is not None and fs < 1:
+        warnings.warn("fs < 1 is unlikely, check your sampling rate (did you provide the period (1/fs) instead?)")
+
     # get resampling num
     if intResampNum is None:
         intResampNum = np.int64(100)
@@ -877,12 +894,12 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
         assert isinstance(boolDirectQuantile, bool), "boolDirectQuantile is not a boolean"
 
     # stitch?
-    if boolStitch is None:
-        boolStitch = True
-    else:
-        assert isinstance(boolStitch, bool), "boolStitch is not a boolean"
+    # if boolStitch is None:
+    #     boolStitch = True
+    # else:
+    #     assert isinstance(boolStitch, bool), "boolStitch is not a boolean"
 
-    # %% check data length
+    # check data length
     dblDataT0 = np.min(vecTime)
     dblReqT0 = np.min(vecEventStarts) - dblJitterSize*dblUseMaxDur
     if dblDataT0 > dblReqT0:
@@ -893,9 +910,9 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
     if dblDataT_end < dblReqT_end:
         logging.warning("zetatstest: lagging data after last event is insufficient for maximal jittering")
 
-    # %% calculate zeta
-    dZETA_One = calcTsZetaOne(vecTime, vecValue, vecEventStarts, dblUseMaxDur, intResampNum,
-                              boolDirectQuantile, dblJitterSize, boolStitch)
+    # calculate zeta
+    dZETA_One = calcTsZetaOne(vecTime, vecValue, vecEventStarts, dblUseMaxDur, fs, intResampNum,
+                              boolDirectQuantile, dblJitterSize)
 
     # update and unpack
     dZETA.update(dZETA_One)
@@ -914,7 +931,7 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
         logging.warning("zetatstest: calculation failed, defaulting to p=1.0")
         return dblZetaP, dZETA
 
-    # %% extract real outputs
+    # extract real outputs
     # get location
     dblLatencyZETA = vecRealTime[intZETAIdx]
     dblZETADeviation = vecRealDeviation[intZETAIdx]
@@ -924,14 +941,14 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
     dblLatencyInvZETA = vecRealTime[intIdx_InvSign]
     dblD_InvSign = vecRealDeviation[intIdx_InvSign]
 
-    # %% calculate mean-rate difference
+    # calculate mean-rate difference
     if boolStopSupplied:
         # pre-allocate
         intTimeNum = len(vecTime)-1
 
         # go through trials to build spike time vector
         for intEvent, dblStimStartT in enumerate(vecEventStarts):
-            # %% get original times
+            # get original times
             dblStimStopT = vecEventStops[intEvent]
             dblBaseStopT = dblStimStartT + dblUseMaxDur
             if (dblBaseStopT - dblStimStopT) <= 0:
@@ -944,11 +961,11 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
             vecSelectFramesBase = np.arange(intStopT, intEndT)
             vecSelectFramesStim = np.arange(intStartT, intStopT)
 
-           #  %% get data
+            # get data
             vecUseBaseTrace = vecValue[vecSelectFramesBase]
             vecUseStimTrace = vecValue[vecSelectFramesStim]
 
-            # %% get activity
+            # get activity
             vecMu_Base[intEvent] = np.mean(vecUseBaseTrace)
             vecMu_Dur[intEvent] = np.mean(vecUseStimTrace)
 
@@ -959,7 +976,7 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
         dblMeanP = stats.ttest_rel(vecMu_Dur, vecMu_Base)[1]
         dblMeanZ = -stats.norm.ppf(dblMeanP/2)
 
-    # %% build output structure
+    # build output structure
     # fill dZETA
     dZETA['dblZETADeviation'] = dblZETADeviation
     dZETA['dblLatencyZETA'] = dblLatencyZETA
@@ -976,14 +993,14 @@ def zetatstest(vecTime, vecValue, arrEventTimes,
     # window used for analysis
     dZETA['dblUseMaxDur'] = dblUseMaxDur
 
-    # %% plot
+    # plot
     if boolPlot:
         plottszeta(vecTime, vecValue, vecEventStarts, dZETA)
 
-    # %% return
+    # return
     return dblZetaP, dZETA
 
-# %% zetatest
+# zetatest
 
 
 def zetatest(vecSpikeTimes, arrEventTimes,
@@ -1089,7 +1106,7 @@ def zetatest(vecSpikeTimes, arrEventTimes,
 
     """
 
-    # %% build placeholder outputs
+    # build placeholder outputs
     dblZetaP = 1.0
     dZETA = dict()
     dRate = dict()
@@ -1147,7 +1164,7 @@ def zetatest(vecSpikeTimes, arrEventTimes,
     dRate['vecPeakStartStopIdx'] = None
     dRate['dblLatencyPeakOnset'] = None
 
-    # %% prep data and assert inputs are correct
+    # prep data and assert inputs are correct
 
     # vecSpikeTimes must be [S by 1] array
     assert (len(vecSpikeTimes.shape) == 1 or vecSpikeTimes.shape[1] == 1) and issubclass(
@@ -1255,7 +1272,7 @@ def zetatest(vecSpikeTimes, arrEventTimes,
     # to do: parallel computing
     boolParallel = False
 
-    # %% calculate zeta
+    # calculate zeta
     dZETA_One = calcZetaOne(vecSpikeTimes, vecEventStarts, dblUseMaxDur, intResampNum,
                             boolDirectQuantile, dblJitterSize, boolStitch, boolParallel)
 
@@ -1276,7 +1293,7 @@ def zetatest(vecSpikeTimes, arrEventTimes,
         logging.warning("zetatest: calculation failed, defaulting to p=1.0")
         return dblZetaP, dZETA, dRate
 
-    # %% extract real outputs
+    # extract real outputs
     # get location
     dblLatencyZETA = vecSpikeT[intZETAIdx]
     dblZETADeviation = vecRealDeviation[intZETAIdx]
@@ -1286,7 +1303,7 @@ def zetatest(vecSpikeTimes, arrEventTimes,
     dblLatencyInvZETA = vecSpikeT[intIdx_InvSign]
     dblD_InvSign = vecRealDeviation[intIdx_InvSign]
 
-    # %% calculate mean-rate difference with t-test
+    # calculate mean-rate difference with t-test
     if boolStopSupplied:
         # calculate spike counts and durations during baseline and stimulus times
         vecRespBinsDur = np.sort(np.reshape(arrEventTimes, -1))
@@ -1308,14 +1325,14 @@ def zetatest(vecSpikeTimes, arrEventTimes,
         dblMeanP = stats.ttest_rel(vecMu_Dur, vecMu_Pre)[1]
         dblMeanZ = -stats.norm.ppf(dblMeanP/2)
 
-    # %% calculate instantaneous firing rates
+    # calculate instantaneous firing rates
     if boolReturnRate:
         # get average of multi-scale derivatives, and rescaled to instantaneous spiking rate
         dblMeanRate = vecSpikeT.size/(dblUseMaxDur*vecEventStarts.size)
         vecRate, dRate = getMultiScaleDeriv(vecSpikeT, vecRealDeviation,
                                             dblMeanRate=dblMeanRate, dblUseMaxDur=dblUseMaxDur, boolParallel=boolParallel)
 
-        # %% calculate IFR statistics
+        # calculate IFR statistics
         if vecRate is not None:
             # get IFR peak
             dPeak = getPeak(vecRate, dRate['vecT'], tplRestrictRange=tplRestrictRange)
@@ -1333,7 +1350,7 @@ def zetatest(vecSpikeTimes, arrEventTimes,
                 vecLatencyVals = [vecRate[intZetaIdxRate], vecRate[intZetaIdxInvRate],
                                   vecRate[dPeak['intPeakLoc']], dOnset['dblValue']]
 
-    # %% build output dictionary
+    # build output dictionary
     # fill dZETA
     dZETA['dblZETADeviation'] = dblZETADeviation
     dZETA['dblLatencyZETA'] = dblLatencyZETA
@@ -1353,14 +1370,14 @@ def zetatest(vecSpikeTimes, arrEventTimes,
     dZETA['vecLatencies'] = vecLatencies
     dZETA['vecLatencyVals'] = vecLatencyVals
 
-    # %% plot
+    # plot
     if boolPlot:
         plotzeta(vecSpikeTimes, vecEventStarts, dZETA, dRate)
 
-    # %% return outputs
+    # return outputs
     return dblZetaP, dZETA, dRate
 
-# %% IFR
+# IFR
 
 
 def ifr(vecSpikeTimes, vecEventTimes,
@@ -1393,7 +1410,7 @@ def ifr(vecSpikeTimes, vecEventTimes,
     1.0 - June 24, 2020 Created by Jorrit Montijn, translated to python by Alexander Heimel
     2.0 - August 22, 2023 Updated translation [by JM]
    """
-    # %% prep data and assert inputs are correct
+    # prep data and assert inputs are correct
     # pre-allocate outputs
     vecTime = np.empty(0)
     vecRate = np.empty(0)
@@ -1449,7 +1466,7 @@ def ifr(vecSpikeTimes, vecEventTimes,
     # parallel processing: to do
     boolUseParallel = False
 
-    # %% get difference from uniform
+    # get difference from uniform
     vecThisDeviation, vecThisSpikeFracs, vecThisFracLinear, vecThisSpikeTimes = getTempOffsetOne(
         vecSpikeTimes, vecEventStarts, dblUseMaxDur)
     intSpikeNum = vecThisSpikeTimes.size
@@ -1460,13 +1477,13 @@ def ifr(vecSpikeTimes, vecEventTimes,
 
         return vecTime, vecRate, dIFR
 
-    # %% get multi-scale derivative
+    # get multi-scale derivative
     intMaxRep = vecEventStarts.size
     dblMeanRate = (intSpikeNum/(dblUseMaxDur*intMaxRep))
     [vecRate, dMSD] = getMultiScaleDeriv(vecThisSpikeTimes, vecThisDeviation,
                                          dblSmoothSd=dblSmoothSd, dblMinScale=dblMinScale, dblBase=dblBase, dblMeanRate=dblMeanRate, dblUseMaxDur=dblUseMaxDur, boolParallel=boolParallel)
 
-    # %% build output
+    # build output
     vecTime = dMSD['vecT']
     vecRate = vecRate  # unnecessary, but for clarity of output building
     dIFR = dict()
