@@ -269,8 +269,11 @@ def _collate_events(vecTimestamps, vecData, vecEventT, dblUseMaxDur, fs=None):
         vecAlignedTimestamps, matAlignedTraces = tw.perievent_traces(
             vecTimestamps, vecData, vecEventT, (0, dblUseMaxDur), fs=fs)
     elif fs is None:
-        listAlignedTimestamps, listAlignedTraces = tw.perievent_traces(
-            vecTimestamps, vecData, vecEventT, (0, dblUseMaxDur + 0.1))
+        try:
+            listAlignedTimestamps, listAlignedTraces = tw.perievent_traces(
+                vecTimestamps, vecData, vecEventT, (0, dblUseMaxDur))
+        except ValueError:
+            pdb.set_trace()
         listAlignedTimestamps = [l - l[0] for l in listAlignedTimestamps]  # this fixes a timewizard bug, when fs is None the timestamps aren't zeroed.
         vecAlignedTimestamps = np.arange(0, dblUseMaxDur, 1/1000)  # this assumes seconds. TODO: make timescale explicit.
         matAlignedTraces = np.zeros((len(listAlignedTimestamps), len(vecAlignedTimestamps)))
@@ -338,9 +341,11 @@ def calcTsZetaOne(vecTimestamps, vecData, arrEventTimes, dblUseMaxDur, fs, intRe
     # Create random jitters per trial / iter
     intTrials = len(vecEventT)
     matJitterPerTrial = np.zeros((intTrials, intResampNum))
+    # jitter_scale = dblJitterSize * dblUseMaxDur
+    jitter_scale = dblUseMaxDur
     for intResampling in range(intResampNum):
-        matJitterPerTrial[:, intResampling] = dblJitterSize * dblUseMaxDur * \
-            ((np.random.rand(vecEventT.shape[0]) - 0.5) * 2)  # uniform jitters between dblJitterSize*[-tau, +tau]
+        matJitterPerTrial[:, intResampling] =  jitter_scale * \
+            ((np.random.rand(vecEventT.shape[0]) - 0.5))  # uniform jitters between dblJitterSize*[-tau, +tau]
 
     # this part is only to check if matlab and python give the same exact results
     # unfortunately matlab's randperm() and numpy's np.random.permutation give different outputs even with
@@ -369,14 +374,14 @@ def calcTsZetaOne(vecTimestamps, vecData, arrEventTimes, dblUseMaxDur, fs, intRe
     for intResampling in range(intResampNum):
         fictive_jittered_evt_times = fictive_og_evt_times + matJitterPerTrial[:, intResampling]
         fictive_jittered_evt_times = fictive_jittered_evt_times[
-            (fictive_jittered_evt_times > dblUseMaxDur) 
-            & (fictive_jittered_evt_times < (fictive_stitched_t.max() - dblUseMaxDur))
+            (fictive_jittered_evt_times > jitter_scale) 
+            & (fictive_jittered_evt_times < (fictive_stitched_t.max() - jitter_scale))
         ]
         vecAlignedTimestamps, matAlignedTraces = _collate_events(
             fictive_stitched_t,
             stitched_data,
             fictive_jittered_evt_times,
-            dblUseMaxDur,
+            jitter_scale,
             fs=fs
         )
 
